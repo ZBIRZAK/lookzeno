@@ -6,11 +6,13 @@ import CartPage from './pages/CartPage';
 import CustomPrintPage from './pages/CustomPrintPage';
 import DashboardPage from './pages/DashboardPage';
 import { CartProvider } from './context/CartContext';
+import ScrollToTop from './components/ScrollToTop';
 
 function App() {
   return (
     <CartProvider>
       <BrowserRouter>
+        <ScrollToTop />
         <Routes>
           <Route path="/" element={<HomePage />} />
           <Route path="/products" element={<ProductsPage />} />
