@@ -6,7 +6,8 @@ import './CartPage.css';
 import { createOrderRecord, isSupabaseConfigured } from '../services/backendService';
 import { formatMAD } from '../utils/currency';
 
-const STORE_WHATSAPP_NUMBER = process.env.REACT_APP_STORE_WHATSAPP_NUMBER || '212600000000';
+const STORE_WHATSAPP_NUMBER = (process.env.REACT_APP_STORE_WHATSAPP_NUMBER || '').trim();
+const BLOCKED_WHATSAPP_NUMBERS = new Set(['212600000000']);
 
 function CartPage() {
   const { items, subtotal, totalCount, updateQty, removeItem, clearCart } = useCart();
@@ -25,9 +26,9 @@ function CartPage() {
       return;
     }
 
-    const whatsappTarget = STORE_WHATSAPP_NUMBER.replace(/\D/g, '');
-    if (!whatsappTarget) {
-      setFormError("Le numéro WhatsApp de la boutique n'est pas configuré.");
+    const whatsappTarget = STORE_WHATSAPP_NUMBER.replace(/\D/g, '').replace(/^00/, '');
+    if (!/^[1-9]\d{7,14}$/.test(whatsappTarget) || BLOCKED_WHATSAPP_NUMBERS.has(whatsappTarget)) {
+      setFormError("Le numéro WhatsApp de la boutique n'est pas configuré correctement.");
       return;
     }
 
