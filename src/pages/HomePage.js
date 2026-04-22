@@ -10,29 +10,6 @@ import capPlaceholder from '../assets/site/product-imgs/Casquettes.webp';
 import { fetchStorefrontData } from '../services/backendService';
 import { formatMAD } from '../utils/currency';
 
-const fallbackFeatured = [
-  { name: 'Shutter Speed T-Shirt', price: 29, image: placeholder2, slug: 'shutter-speed', to: '/product/shutter-speed' },
-  { name: 'Production Tee', price: 29, image: placeholder2, slug: 'production-tee', to: '/product/production-tee' },
-  { name: 'Reverb Tee', price: 29, image: placeholder2, slug: 'reverb-tee', to: '/product/reverb-tee' },
-  { name: 'Sticker Pack', price: 8, image: placeholder2, slug: 'sticker-pack', to: '/product/sticker-pack' }
-];
-
-const fallbackCaps = [
-  { name: 'LookZeno Classic Casquette', price: 24, image: capPlaceholder, slug: 'classic-casquette', to: '/product/classic-casquette' },
-  { name: 'Studio Black Casquette', price: 24, image: capPlaceholder, slug: 'studio-black-casquette', to: '/product/studio-black-casquette' }
-];
-
-const fallbackHoodies = [
-  { name: 'LookZeno Core Hoodie', price: 59, image: placeholder2, slug: 'core-hoodie', to: '/product/core-hoodie' },
-  { name: 'LookZeno Studio Hoodie', price: 64, image: placeholder2, slug: 'studio-hoodie', to: '/product/studio-hoodie' }
-];
-
-const fallbackCategories = [
-  { name: 'T-Shirts', desc: 'T-shirts graphiques et brodés les plus vendus' },
-  { name: 'Hoodies', desc: 'Coupes oversize et molleton premium' },
-  { name: 'Casquettes', desc: 'Casquettes minimalistes avec broderie premium' }
-];
-
 const fallbackHeroSlides = [
   { image: heroImg, alt: 'Look principal LookZeno 1' },
   { image: heroImgAlt, alt: 'Look principal LookZeno 2' },
@@ -111,8 +88,7 @@ function HomePage() {
     };
   }, []);
 
-  const hasLiveCatalog = storeData.products.length > 0;
-  const featuredProducts = hasLiveCatalog ? storeData.featured : fallbackFeatured;
+  const featuredProducts = storeData.featured;
 
   const capProducts = useMemo(() => {
     const caps = storeData.products.filter((item) => isCapProduct(item));
@@ -132,12 +108,12 @@ function HomePage() {
     return storeData.products.some((item) => /hoodie|hoodies/i.test(String(item?.category || '')));
   }, [storeData.categories, storeData.products]);
 
-  const categories =
-    storeData.categories.length > 0
-      ? storeData.categories.map((cat) => ({ name: cat.name, desc: cat.description || `${cat.name} collection` }))
-      : fallbackCategories;
+  const categories = storeData.categories.map((cat) => ({
+    name: cat.name,
+    desc: cat.description || `${cat.name} collection`
+  }));
 
-  const ctaProduct = featuredProducts[0] || fallbackFeatured[0];
+  const ctaProduct = featuredProducts[0] || storeData.products[0] || null;
 
   return (
     <div className="home-page" id="top">
@@ -213,7 +189,7 @@ function HomePage() {
         </div>
       </section>
 
-      {isLoading || !hasLiveCatalog || (hasHoodiesCategory && hoodieProducts.length > 0) ? (
+      {isLoading || (hasHoodiesCategory && hoodieProducts.length > 0) ? (
         <section className="caps-section" id="hoodies">
           <div className="section-head">
             <h2>Hoodies</h2>
@@ -228,7 +204,7 @@ function HomePage() {
                     <div className="skeleton product-price-skeleton" />
                   </article>
                 ))
-              : (hasLiveCatalog ? hoodieProducts : fallbackHoodies).map((product) => (
+              : hoodieProducts.map((product) => (
                   <article className="product-card" key={product.slug || product.name}>
                     <Link to={product.to || `/product/${product.slug}`}>
                       <img src={product.image || placeholder2} alt={product.name} />
@@ -241,7 +217,7 @@ function HomePage() {
         </section>
       ) : null}
 
-      {isLoading || !hasLiveCatalog || capProducts.length > 0 ? (
+      {isLoading || capProducts.length > 0 ? (
         <section className="caps-section" id="casquettes">
           <div className="section-head">
             <h2>Casquettes</h2>
@@ -256,7 +232,7 @@ function HomePage() {
                     <div className="skeleton product-price-skeleton" />
                   </article>
                 ))
-              : (hasLiveCatalog ? capProducts : fallbackCaps).map((product) => (
+              : capProducts.map((product) => (
                   <article className="product-card" key={product.slug || product.name}>
                     <Link to={product.to || `/product/${product.slug}`}>
                       <img src={product.image || capPlaceholder} alt={product.name} />
@@ -278,13 +254,21 @@ function HomePage() {
                 <div className="skeleton category-link-skeleton" />
               </article>
             ))
-          : categories.map((cat) => (
-              <article key={cat.name}>
-                <h2>{cat.name}</h2>
-                <p>{cat.desc}</p>
-                <Link to={`/products?category=${encodeURIComponent(cat.name)}`}>Acheter {cat.name}</Link>
-              </article>
-            ))}
+          : categories.length > 0
+            ? categories.map((cat) => (
+                <article key={cat.name}>
+                  <h2>{cat.name}</h2>
+                  <p>{cat.desc}</p>
+                  <Link to={`/products?category=${encodeURIComponent(cat.name)}`}>Acheter {cat.name}</Link>
+                </article>
+              ))
+            : (
+                <article>
+                  <h2>Catégories à venir</h2>
+                  <p>Ajoutez des catégories depuis le tableau de bord pour les afficher ici.</p>
+                  <Link to="/products">Voir la boutique</Link>
+                </article>
+              )}
       </section>
 
       <section className="benefits" id="benefits">
@@ -304,7 +288,9 @@ function HomePage() {
 
       <section className="cta-banner">
         <h2>Prêt à renouveler votre garde-robe ?</h2>
-        <Link to={ctaProduct.to || `/product/${ctaProduct.slug}`}>Commencer avec {ctaProduct.name}</Link>
+        <Link to={ctaProduct?.to || (ctaProduct?.slug ? `/product/${ctaProduct.slug}` : '/products')}>
+          {ctaProduct ? `Commencer avec ${ctaProduct.name}` : 'Découvrir la boutique'}
+        </Link>
       </section>
 
       <footer className="footer">
