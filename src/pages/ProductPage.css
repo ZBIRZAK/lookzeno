@@ -616,7 +616,7 @@
 }
 
 .related {
-  padding-top: 6.4rem;
+  padding-top: 0.4rem;
 }
 
 .related-head {
@@ -774,7 +774,7 @@ button:focus-visible {
 
 @media (max-width: 920px) {
   .has-sticky-cart .pdp-main {
-    padding-bottom: 84px;
+    padding-bottom: 0px;
   }
 
   .pdp-topbar {
