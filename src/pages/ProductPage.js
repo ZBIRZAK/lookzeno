@@ -180,7 +180,7 @@ function ProductPage() {
   if (loading) {
     return (
       <div className="pdp-page" id="top">
-        <div className="pdp-promo">Livraison offerte à partir de 80 MAD</div>
+        <div className="pdp-promo">Livraison offerte à partir de 280 MAD</div>
         <SiteHeader />
         <main className="pdp-main">
           <section className="product-hero">
@@ -249,7 +249,7 @@ function ProductPage() {
 
   return (
     <div className={`pdp-page ${showStickyCart ? 'has-sticky-cart' : ''}`} id="top">
-      <div className="pdp-promo">Livraison offerte à partir de 80 MAD</div>
+      <div className="pdp-promo">Livraison offerte à partir de 280 MAD</div>
       <SiteHeader />
 
       <main className="pdp-main">
@@ -366,7 +366,7 @@ function ProductPage() {
         <section className="related" id="related">
           <div className="related-head">
             <h2>Vous aimerez aussi</h2>
-            <Link to="/">Retour à l’accueil</Link>
+            {/* <Link to="/">Retour à l’accueil</Link> */}
           </div>
           <div className="related-grid">
             {relatedProducts.length > 0 ? (
