@@ -97,15 +97,11 @@ function ProductPage() {
   };
 
   useEffect(() => {
-    const cartRow = cartRowRef.current;
-    if (!cartRow) {
-      return undefined;
-    }
-
     const updateStickyState = () => {
       const isMobileViewport = window.matchMedia('(max-width: 920px)').matches;
       setIsMobileViewport(isMobileViewport);
-      if (!isMobileViewport) {
+      const cartRow = cartRowRef.current;
+      if (!isMobileViewport || !cartRow) {
         setShowStickyCart(false);
         return;
       }
@@ -134,7 +130,7 @@ function ProductPage() {
       window.removeEventListener('scroll', onScroll);
       window.removeEventListener('resize', updateStickyState);
     };
-  }, []);
+  }, [loading, product?.id]);
 
   useEffect(() => {
     if (!justAdded) {
