@@ -955,9 +955,18 @@ button:focus-visible {
   }
 
   .section-head {
-    align-items: flex-start;
-    flex-direction: column;
-    gap: 0.35rem;
+    align-items: center;
+    flex-direction: row;
+    gap: 0.6rem;
+  }
+
+  .section-head h2 {
+    flex: 1 1 auto;
+  }
+
+  .section-head a {
+    margin-left: auto;
+    white-space: nowrap;
   }
 
   .product-card h3 {
