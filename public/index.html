@@ -6,9 +6,10 @@
     <link rel="shortcut icon" type="image/png" href="%PUBLIC_URL%/favicone.png" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="format-detection" content="telephone=no, date=no, email=no, address=no" />
-    <meta name="color-scheme" content="light only" />
+    <meta name="color-scheme" content="only light" />
     <meta name="supported-color-schemes" content="light" />
-    <meta name="theme-color" content="#ffffff" />
+    <meta name="theme-color" media="(prefers-color-scheme: light)" content="#ffffff" />
+    <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#ffffff" />
     <meta
       name="description"
       content="Web site created using create-react-app"
