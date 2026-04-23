@@ -223,7 +223,7 @@ function HomePage() {
         <div className="home-image-overlay" />
         <div className="home-image-content">
           <p>LookZeno</p>
-          <h2>Des pièces visuelles fortes pour ton quotidien</h2>
+          <h2>Des pièces visuelles fortes pour ton quotidien </h2>
           <span>Streetwear premium, détails soignés et identité moderne.</span>
           <Link to="/products">Découvrir la collection</Link>
         </div>
