@@ -165,6 +165,11 @@ function ProductPage() {
     ];
   }, [product]);
 
+  const detailSectionTitle = String(product?.detail_section_title || '').trim() || 'Chaque détail compte';
+  const detailSectionText =
+    String(product?.detail_section_text || '').trim() ||
+    'Les mêmes touches subtiles et détails cachés que nous aimons dans nos vidéos se retrouvent ici. Design réfléchi, meilleurs matériaux et finitions soignées.';
+
   useEffect(() => {
     if (infoSections.length === 0) {
       setOpenInfo('');
@@ -349,11 +354,8 @@ function ProductPage() {
 
         {product.detail_image_url ? (
           <section className="details">
-            <h2>Chaque détail compte</h2>
-            <p>
-              Les mêmes touches subtiles et détails cachés que nous aimons dans nos vidéos
-              se retrouvent ici. Design réfléchi, meilleurs matériaux et finitions soignées.
-            </p>
+            <h2>{detailSectionTitle}</h2>
+            <p>{detailSectionText}</p>
             <div className="detail-photo-wrap">
               <img src={product.detail_image_url} alt="Détail du produit" />
               {/* <div className="badge">
@@ -405,7 +407,13 @@ function ProductPage() {
       ) : null}
 
       <footer className="pdp-footer">
-        <p>Politique de confidentialité · Conditions d’utilisation · Retours & FAQ · Contact</p>
+        <p>
+          <Link to="/politique-confidentialite">Politique de confidentialité</Link> ·{' '}
+          <Link to="/conditions-generales">Conditions générales</Link> ·{' '}
+          <Link to="/politique-cookies">Politique de cookies</Link> ·{' '}
+          <Link to="/mentions-legales">Mentions légales</Link> ·{' '}
+          <a href="mailto:contact@lookzeno.com">Contact</a>
+        </p>
         <span>© 2026 LookZeno</span>
       </footer>
     </div>

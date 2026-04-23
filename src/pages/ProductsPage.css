@@ -517,6 +517,15 @@
   color: #6a7179;
 }
 
+.products-footer a {
+  color: inherit;
+  text-decoration: none;
+}
+
+.products-footer a:hover {
+  color: var(--red);
+}
+
 a:focus-visible,
 button:focus-visible,
 select:focus-visible {

@@ -36,6 +36,8 @@ create table if not exists public.products (
   image_url text,
   media_video_url text,
   detail_image_url text,
+  detail_section_title text,
+  detail_section_text text,
   badge text,
   description text,
   info_sections jsonb not null default '[]'::jsonb,
@@ -66,6 +68,8 @@ on public.product_images(product_id) where is_primary = true;
 alter table public.products add column if not exists description text;
 alter table public.products add column if not exists media_video_url text;
 alter table public.products add column if not exists detail_image_url text;
+alter table public.products add column if not exists detail_section_title text;
+alter table public.products add column if not exists detail_section_text text;
 alter table public.products add column if not exists info_sections jsonb not null default '[]'::jsonb;
 alter table public.products add column if not exists tags text[] not null default '{}';
 alter table public.products add column if not exists sizes text[] not null default '{S,M,L,XL,2XL}';

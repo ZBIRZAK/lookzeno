@@ -109,6 +109,8 @@ function DashboardPage() {
     image_url: '',
     media_video_url: '',
     detail_image_url: '',
+    detail_section_title: '',
+    detail_section_text: '',
     badge: '',
     description: '',
     tags: '',
@@ -154,6 +156,8 @@ function DashboardPage() {
       image_url: '',
       media_video_url: '',
       detail_image_url: '',
+      detail_section_title: '',
+      detail_section_text: '',
       badge: '',
       description: '',
       tags: '',
@@ -548,6 +552,8 @@ function DashboardPage() {
       image_url: product.image_url || product.image || '',
       media_video_url: product.media_video_url || '',
       detail_image_url: product.detail_image_url || '',
+      detail_section_title: product.detail_section_title || '',
+      detail_section_text: product.detail_section_text || '',
       badge: product.badge || '',
       description: product.description || '',
       tags: (product.tags || []).join(', '),
@@ -1410,6 +1416,28 @@ function DashboardPage() {
                 <img src={productForm.detail_image_url} alt="Current detail" />
               </div>
             ) : null}
+
+            <label>
+              Detail Section Title
+              <input
+                type="text"
+                name="detail_section_title"
+                value={productForm.detail_section_title}
+                onChange={onProductInput}
+                placeholder="Chaque detail compte"
+              />
+            </label>
+
+            <label className="wide-field full-row">
+              Detail Section Text
+              <textarea
+                name="detail_section_text"
+                value={productForm.detail_section_text}
+                onChange={onProductInput}
+                placeholder="Texte de la section detail du produit"
+                rows={3}
+              />
+            </label>
 
             <label>
               Badge

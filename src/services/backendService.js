@@ -72,6 +72,8 @@ function normalizeProduct(item) {
     image_url: item.image_url || '',
     media_video_url: item.media_video_url || '',
     detail_image_url: item.detail_image_url || '',
+    detail_section_title: item.detail_section_title || '',
+    detail_section_text: item.detail_section_text || '',
     description:
       item.description ||
       'Tissu premium, coupe nette et ton streetwear moderne. Conçu pour un usage quotidien.',
@@ -666,6 +668,8 @@ export async function upsertProductRecord(productInput) {
     image_url: String(productInput.image_url || '').trim() || null,
     media_video_url: String(productInput.media_video_url || '').trim() || null,
     detail_image_url: String(productInput.detail_image_url || '').trim() || null,
+    detail_section_title: String(productInput.detail_section_title || '').trim() || null,
+    detail_section_text: String(productInput.detail_section_text || '').trim() || null,
     badge: String(productInput.badge || '').trim() || null,
     description: String(productInput.description || '').trim() || null,
     info_sections: normalizeInfoSections(productInput.info_sections),

@@ -730,6 +730,15 @@
   color: #6b727c;
 }
 
+.pdp-footer a {
+  color: inherit;
+  text-decoration: none;
+}
+
+.pdp-footer a:hover {
+  color: var(--red);
+}
+
 a:focus-visible,
 button:focus-visible {
   outline: 2px solid #22262c;

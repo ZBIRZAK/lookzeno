@@ -623,6 +623,15 @@
   color: #6a7179;
 }
 
+.footer a {
+  color: inherit;
+  text-decoration: none;
+}
+
+.footer a:hover {
+  color: #ef1f2f;
+}
+
 a:focus-visible,
 button:focus-visible {
   outline: 2px solid #ffffff;

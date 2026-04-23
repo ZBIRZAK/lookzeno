@@ -48,7 +48,7 @@ function SiteHeader({ overlay = false }) {
         <div className="site-right-links">
           <Link to="/products">Boutique</Link>
           <Link to="/custom-print">Impression personnalisée</Link>
-          <a href="/#benefits">Pourquoi LookZeno</a>
+          <Link to="/pourquoi-lookzeno">Pourquoi LookZeno</Link>
           <Link to="/cart" className="site-cart-icon" aria-label={`Panier avec ${totalCount} article(s)`}>
             <span aria-hidden="true">
               <svg viewBox="0 0 24 24" role="presentation">
@@ -82,8 +82,8 @@ function SiteHeader({ overlay = false }) {
         <p>Menu</p>
         <Link to="/products" onClick={closeMenu}>Boutique</Link>
         <Link to="/custom-print" onClick={closeMenu}>Impression personnalisée</Link>
+        <Link to="/pourquoi-lookzeno" onClick={closeMenu}>Pourquoi LookZeno</Link>
         <Link to="/cart" onClick={closeMenu}>Panier ({totalCount})</Link>
-        <a href="/#benefits" onClick={closeMenu}>Livraison et retours</a>
       </aside>
     </>
   );

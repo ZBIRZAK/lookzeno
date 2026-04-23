@@ -294,7 +294,13 @@ function HomePage() {
       </section>
 
       <footer className="footer">
-        <p>Politique de confidentialité · Conditions d’utilisation · Retours & FAQ · Contact</p>
+        <p>
+          <Link to="/politique-confidentialite">Politique de confidentialité</Link> ·{' '}
+          <Link to="/conditions-generales">Conditions générales</Link> ·{' '}
+          <Link to="/politique-cookies">Politique de cookies</Link> ·{' '}
+          <Link to="/mentions-legales">Mentions légales</Link> ·{' '}
+          <a href="mailto:contact@lookzeno.com">Contact</a>
+        </p>
         <span>© 2026 LookZeno</span>
       </footer>
     </div>
