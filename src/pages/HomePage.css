@@ -344,6 +344,86 @@
   border-color: #ef1f2f;
 }
 
+.home-image-section {
+  width: min(var(--content-max), calc(100% - (2 * var(--page-x))));
+  margin: 1rem auto;
+  padding: 0;
+  position: relative;
+  overflow: hidden;
+  border-radius: 16px;
+  border: 1px solid #e6e9ef;
+  box-shadow: 0 12px 30px #0d152514;
+}
+
+.home-image-section img {
+  width: 100%;
+  display: block;
+  height: clamp(240px, 32vh, 420px);
+  object-fit: cover;
+  object-position: center;
+}
+
+.home-image-overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to right, #0f1117d9 0%, #1519239a 36%, #1519231f 72%, #1519230d 100%);
+  pointer-events: none;
+}
+
+.home-image-content {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  padding: 1rem var(--desktop-shell);
+  display: grid;
+  align-content: center;
+  gap: 0.45rem;
+  max-width: min(700px, 92%);
+}
+
+.home-image-content p {
+  margin: 0;
+  color: #ffffffd9;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-size: 0.72rem;
+  font-weight: 700;
+}
+
+.home-image-content h2 {
+  margin: 0;
+  color: #fff;
+  font-family: 'Barlow Condensed', sans-serif;
+  font-style: italic;
+  text-transform: uppercase;
+  line-height: 0.98;
+  font-size: clamp(1.4rem, 4vw, 2.8rem);
+}
+
+.home-image-content span {
+  color: #ffffffd1;
+  font-size: clamp(0.82rem, 1.6vw, 0.95rem);
+  line-height: 1.45;
+}
+
+.home-image-content a {
+  margin-top: 0.2rem;
+  width: fit-content;
+  min-height: 42px;
+  padding: 0 1rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 8px;
+  text-decoration: none;
+  text-transform: uppercase;
+  font-size: 0.74rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  background: #ef1f2f;
+  color: #fff;
+}
+
 .hero-content p {
   margin: 0;
   text-transform: uppercase;
@@ -845,6 +925,29 @@ button:focus-visible {
 
   .hero-dots {
     bottom: 0.5rem;
+  }
+
+  .home-image-content {
+    padding: 0.8rem var(--page-x);
+    max-width: 95%;
+    gap: 0.35rem;
+  }
+
+  .home-image-content h2 {
+    font-size: 1.35rem;
+  }
+
+  .home-image-content span {
+    font-size: 0.8rem;
+  }
+
+  .home-image-content a {
+    min-height: 40px;
+    padding: 0 0.8rem;
+  }
+
+  .home-image-section img {
+    height: clamp(210px, 28vh, 320px);
   }
 
   .mobile-drawer {

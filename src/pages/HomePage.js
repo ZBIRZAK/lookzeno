@@ -7,6 +7,7 @@ import heroImgAlt from '../assets/site/hero.png';
 import heroImgThird from '../assets/pdp/main.jpg';
 import placeholder2 from '../assets/site/product-imgs/placeholder-2.avif';
 import capPlaceholder from '../assets/site/product-imgs/Casquettes.webp';
+import homeSectionImage from '../assets/images/image1-home-page.webp';
 import { fetchStorefrontData } from '../services/backendService';
 import { formatMAD } from '../utils/currency';
 
@@ -216,6 +217,17 @@ function HomePage() {
           </div>
         </section>
       ) : null}
+
+      <section className="home-image-section" aria-label="LookZeno mise en avant">
+        <img src={homeSectionImage} alt="Collection LookZeno en mise en avant" loading="lazy" />
+        <div className="home-image-overlay" />
+        <div className="home-image-content">
+          <p>LookZeno</p>
+          <h2>Des pièces visuelles fortes pour ton quotidien</h2>
+          <span>Streetwear premium, détails soignés et identité moderne.</span>
+          <Link to="/products">Découvrir la collection</Link>
+        </div>
+      </section>
 
       {isLoading || capProducts.length > 0 ? (
         <section className="caps-section" id="casquettes">
