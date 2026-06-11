@@ -6,7 +6,6 @@ import heroImg from '../assets/reference/hero.png';
 import heroImgAlt from '../assets/pdp/detail.jpg';
 import heroImgThird from '../assets/images/image1-home-page.jpg';
 import placeholder2 from '../assets/site/product-imgs/product-placeholder.avif';
-import capPlaceholder from '../assets/site/product-imgs/Casquettes.webp';
 import homeSectionImage from '../assets/images/image1-home-page.jpg';
 import { fetchStorefrontData } from '../services/backendService';
 import { formatMAD } from '../utils/currency';
@@ -21,58 +20,26 @@ function currency(price) {
   return formatMAD(price);
 }
 
-function isCapProduct(item) {
-  const category = String(item?.category || '').toLowerCase();
-  const name = String(item?.name || '').toLowerCase();
-  const tags = Array.isArray(item?.tags) ? item.tags.join(' ').toLowerCase() : '';
-  const haystack = `${category} ${name} ${tags}`.trim();
-  return /(casquette|casquettes|cap|caps|hat|hats)/i.test(haystack);
-}
-
-function isHoodieProduct(item) {
-  const category = String(item?.category || '').toLowerCase();
-  const name = String(item?.name || '').toLowerCase();
-  const tags = Array.isArray(item?.tags) ? item.tags.join(' ').toLowerCase() : '';
-  const haystack = `${category} ${name} ${tags}`.trim();
-  return /(hoodie|hoodies|sweat|sweatshirt)/i.test(haystack);
-}
-
-function matchesProductType(item, pattern) {
-  const category = String(item?.category || '').toLowerCase();
-  const name = String(item?.name || '').toLowerCase();
-  const tags = Array.isArray(item?.tags) ? item.tags.join(' ').toLowerCase() : '';
-  return pattern.test(`${category} ${name} ${tags}`.trim());
-}
-
-function PriorityProductSection({ id, title, products, isLoading }) {
-  if (!isLoading && products.length === 0) {
-    return null;
-  }
-
+function HomepageProductSection({ section, index }) {
   return (
-    <section className="caps-section" id={id}>
+    <section
+      className={`caps-section dynamic-home-section ${index % 2 === 0 ? 'light' : 'soft'}`}
+      id={`homepage-section-${section.id}`}
+    >
       <div className="section-head">
-        <h2>{title}</h2>
-        <Link to={`/products?category=${encodeURIComponent(title)}`}>Voir tout</Link>
+        <h2>{section.title}</h2>
+        <Link to="/products">Voir tout</Link>
       </div>
       <div className="product-grid caps-grid">
-        {isLoading
-          ? Array.from({ length: 2 }).map((_, idx) => (
-              <article className="product-card product-card-skeleton" key={`${id}-skeleton-${idx}`}>
-                <div className="skeleton product-image-skeleton" />
-                <div className="skeleton product-title-skeleton" />
-                <div className="skeleton product-price-skeleton" />
-              </article>
-            ))
-          : products.map((product) => (
-              <article className="product-card" key={product.slug || product.name}>
-                <Link to={product.to || `/product/${product.slug}`}>
-                  <img src={product.image || placeholder2} alt={product.name} />
-                </Link>
-                <h3>{product.name}</h3>
-                <p>{currency(product.price)}</p>
-              </article>
-            ))}
+        {section.products.map((product) => (
+          <article className="product-card" key={product.slug || product.name}>
+            <Link to={product.to || `/product/${product.slug}`}>
+              <img src={product.image || placeholder2} alt={product.name} />
+            </Link>
+            <h3>{product.name}</h3>
+            <p>{currency(product.price)}</p>
+          </article>
+        ))}
       </div>
     </section>
   );
@@ -81,7 +48,13 @@ function PriorityProductSection({ id, title, products, isLoading }) {
 function HomePage() {
   const [activeSlide, setActiveSlide] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
-  const [storeData, setStoreData] = useState({ featured: [], products: [], categories: [], heroSlides: [] });
+  const [storeData, setStoreData] = useState({
+    featured: [],
+    products: [],
+    categories: [],
+    heroSlides: [],
+    homepageSections: []
+  });
   const heroSlides = !isLoading
     ? storeData.heroSlides.length > 0
       ? storeData.heroSlides
@@ -131,34 +104,6 @@ function HomePage() {
   }, []);
 
   const featuredProducts = storeData.featured;
-
-  const capProducts = useMemo(() => {
-    const caps = storeData.products.filter((item) => isCapProduct(item));
-    return caps.slice(0, 4);
-  }, [storeData.products]);
-
-  const hoodieProducts = useMemo(() => {
-    const hoodies = storeData.products.filter((item) => isHoodieProduct(item));
-    return hoodies.slice(0, 4);
-  }, [storeData.products]);
-
-  const sandalProducts = useMemo(
-    () => storeData.products.filter((item) => matchesProductType(item, /\b(sandal|sandals|sandale|sandales)\b/i)).slice(0, 4),
-    [storeData.products]
-  );
-
-  const jerseyProducts = useMemo(
-    () => storeData.products.filter((item) => matchesProductType(item, /\b(jersey|jerseys)\b/i)).slice(0, 4),
-    [storeData.products]
-  );
-
-  const hasHoodiesCategory = useMemo(() => {
-    const categoriesFromDb = (storeData.categories || []).map((cat) => String(cat?.name || '').toLowerCase());
-    if (categoriesFromDb.some((name) => /hoodie|hoodies/.test(name))) {
-      return true;
-    }
-    return storeData.products.some((item) => /hoodie|hoodies/i.test(String(item?.category || '')));
-  }, [storeData.categories, storeData.products]);
 
   const categories = useMemo(() => {
     const priority = ['sandals', 'jerseys'];
@@ -221,20 +166,6 @@ function HomePage() {
         </div>
       </section>
 
-      <PriorityProductSection
-        id="sandals"
-        title="Sandals"
-        products={sandalProducts}
-        isLoading={isLoading}
-      />
-
-      <PriorityProductSection
-        id="jerseys"
-        title="Jerseys"
-        products={jerseyProducts}
-        isLoading={isLoading}
-      />
-
       <section className="featured" id="featured">
         <div className="section-head">
           <h2>Produits en vedette</h2>
@@ -266,33 +197,11 @@ function HomePage() {
         </div>
       </section>
 
-      {isLoading || (hasHoodiesCategory && hoodieProducts.length > 0) ? (
-        <section className="caps-section" id="hoodies">
-          <div className="section-head">
-            <h2>Hoodies</h2>
-            <Link to="/products">Voir tout</Link>
-          </div>
-          <div className="product-grid caps-grid">
-            {isLoading
-              ? Array.from({ length: 2 }).map((_, idx) => (
-                  <article className="product-card product-card-skeleton" key={`hoodie-skeleton-${idx}`}>
-                    <div className="skeleton product-image-skeleton" />
-                    <div className="skeleton product-title-skeleton" />
-                    <div className="skeleton product-price-skeleton" />
-                  </article>
-                ))
-              : hoodieProducts.map((product) => (
-                  <article className="product-card" key={product.slug || product.name}>
-                    <Link to={product.to || `/product/${product.slug}`}>
-                      <img src={product.image || placeholder2} alt={product.name} />
-                    </Link>
-                    <h3>{product.name}</h3>
-                    <p>{currency(product.price)}</p>
-                  </article>
-                ))}
-          </div>
-        </section>
-      ) : null}
+      {!isLoading
+        ? storeData.homepageSections.map((section, index) => (
+            <HomepageProductSection key={section.id} section={section} index={index} />
+          ))
+        : null}
 
       <section className="home-image-section" aria-label="LookZeno mise en avant">
         <img src={homeSectionImage} alt="Collection LookZeno en mise en avant" loading="lazy" />
@@ -304,34 +213,6 @@ function HomePage() {
           <Link to="/products">Découvrir la collection</Link>
         </div>
       </section>
-
-      {isLoading || capProducts.length > 0 ? (
-        <section className="caps-section" id="casquettes">
-          <div className="section-head">
-            <h2>Casquettes</h2>
-            <Link to="/products">Voir tout</Link>
-          </div>
-          <div className="product-grid caps-grid">
-            {isLoading
-              ? Array.from({ length: 2 }).map((_, idx) => (
-                  <article className="product-card product-card-skeleton" key={`caps-skeleton-${idx}`}>
-                    <div className="skeleton product-image-skeleton" />
-                    <div className="skeleton product-title-skeleton" />
-                    <div className="skeleton product-price-skeleton" />
-                  </article>
-                ))
-              : capProducts.map((product) => (
-                  <article className="product-card" key={product.slug || product.name}>
-                    <Link to={product.to || `/product/${product.slug}`}>
-                      <img src={product.image || capPlaceholder} alt={product.name} />
-                    </Link>
-                    <h3>{product.name}</h3>
-                    <p>{currency(product.price)}</p>
-                  </article>
-                ))}
-          </div>
-        </section>
-      ) : null}
 
       <section className="categories" id="categories">
         {isLoading

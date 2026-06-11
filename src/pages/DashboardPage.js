@@ -6,6 +6,7 @@ import {
   DEFAULT_PRODUCT_CATEGORIES,
   deleteCategoryRecord,
   deleteHeroSlideRecord,
+  deleteHomepageSectionRecord,
   deleteProductImageRecord,
   deleteProductRecord,
   deleteTagRecord,
@@ -19,6 +20,7 @@ import {
   subscribeDashboardAuth,
   toggleProductImageActive,
   toggleHeroSlideActive,
+  toggleHomepageSectionActive,
   toggleProductActive,
   updateProductImageRecord,
   uploadHeroImage,
@@ -26,6 +28,7 @@ import {
   uploadProductMedia,
   upsertCategoryRecord,
   upsertHeroSlideRecord,
+  upsertHomepageSectionRecord,
   upsertProductRecord,
   upsertTagRecord
 } from '../services/backendService';
@@ -75,6 +78,7 @@ function DashboardPage() {
   const [savingCategory, setSavingCategory] = useState(false);
   const [savingTag, setSavingTag] = useState(false);
   const [savingHero, setSavingHero] = useState(false);
+  const [savingHomepageSection, setSavingHomepageSection] = useState(false);
   const [uploadingImage, setUploadingImage] = useState(false);
   const [uploadingDetailImage, setUploadingDetailImage] = useState(false);
   const [uploadingMediaVideo, setUploadingMediaVideo] = useState(false);
@@ -84,10 +88,12 @@ function DashboardPage() {
   const [categoryMessage, setCategoryMessage] = useState('');
   const [tagMessage, setTagMessage] = useState('');
   const [heroMessage, setHeroMessage] = useState('');
+  const [homepageSectionMessage, setHomepageSectionMessage] = useState('');
   const [productError, setProductError] = useState('');
   const [categoryError, setCategoryError] = useState('');
   const [tagError, setTagError] = useState('');
   const [heroError, setHeroError] = useState('');
+  const [homepageSectionError, setHomepageSectionError] = useState('');
 
   const [selectedProductIds, setSelectedProductIds] = useState([]);
   const [savingProductImage, setSavingProductImage] = useState(false);
@@ -131,6 +137,13 @@ function DashboardPage() {
     sort_order: 0,
     is_active: true
   });
+  const [homepageSectionForm, setHomepageSectionForm] = useState({
+    id: '',
+    title: '',
+    product_ids: [],
+    sort_order: 0,
+    is_active: true
+  });
 
   const [dashboard, setDashboard] = useState({
     metrics: { totalOrders: 0, totalRevenue: 0, totalCustomRequests: 0, totalProducts: 0 },
@@ -139,7 +152,8 @@ function DashboardPage() {
     products: [],
     categories: [],
     tags: [],
-    heroSlides: []
+    heroSlides: [],
+    homepageSections: []
   });
 
   const categoryOptions = useMemo(() => {
@@ -192,6 +206,16 @@ function DashboardPage() {
       image_url: '',
       cta_text: 'Shop Now',
       cta_url: '/products',
+      sort_order: 0,
+      is_active: true
+    });
+  };
+
+  const clearHomepageSectionForm = () => {
+    setHomepageSectionForm({
+      id: '',
+      title: '',
+      product_ids: [],
       sort_order: 0,
       is_active: true
     });
@@ -355,6 +379,23 @@ function DashboardPage() {
     setHeroForm((current) => ({
       ...current,
       [name]: type === 'checkbox' ? checked : value
+    }));
+  };
+
+  const onHomepageSectionInput = (event) => {
+    const { name, value, type, checked } = event.target;
+    setHomepageSectionForm((current) => ({
+      ...current,
+      [name]: type === 'checkbox' ? checked : value
+    }));
+  };
+
+  const onHomepageSectionProductToggle = (productId) => {
+    setHomepageSectionForm((current) => ({
+      ...current,
+      product_ids: current.product_ids.includes(productId)
+        ? current.product_ids.filter((id) => id !== productId)
+        : [...current.product_ids, productId]
     }));
   };
 
@@ -607,6 +648,18 @@ function DashboardPage() {
       cta_url: slide.cta_url || '/products',
       sort_order: Number(slide.sort_order || 0),
       is_active: slide.is_active !== false
+    });
+  };
+
+  const onEditHomepageSection = (section) => {
+    setHomepageSectionMessage('');
+    setHomepageSectionError('');
+    setHomepageSectionForm({
+      id: section.id,
+      title: section.title || '',
+      product_ids: Array.isArray(section.product_ids) ? section.product_ids : [],
+      sort_order: Number(section.sort_order || 0),
+      is_active: section.is_active !== false
     });
   };
 
@@ -997,6 +1050,37 @@ function DashboardPage() {
     loadData();
   };
 
+  const onSaveHomepageSection = async (event) => {
+    event.preventDefault();
+    setHomepageSectionMessage('');
+    setHomepageSectionError('');
+
+    if (!homepageSectionForm.title.trim()) {
+      setHomepageSectionError('Section title is required.');
+      return;
+    }
+
+    if (homepageSectionForm.product_ids.length === 0) {
+      setHomepageSectionError('Select at least one product.');
+      return;
+    }
+
+    setSavingHomepageSection(true);
+    const { error: saveError } = await upsertHomepageSectionRecord(homepageSectionForm);
+    setSavingHomepageSection(false);
+
+    if (saveError) {
+      setHomepageSectionError(saveError.message || 'Could not save homepage section.');
+      return;
+    }
+
+    setHomepageSectionMessage(
+      homepageSectionForm.id ? 'Homepage section updated.' : 'Homepage section created.'
+    );
+    clearHomepageSectionForm();
+    loadData();
+  };
+
   const onDeleteCategory = async (categoryId) => {
     if (!window.confirm('Delete this category?')) {
       return;
@@ -1054,6 +1138,36 @@ function DashboardPage() {
       return;
     }
     setHeroMessage(slide.is_active ? 'Hero slide deactivated.' : 'Hero slide activated.');
+    loadData();
+  };
+
+  const onDeleteHomepageSection = async (sectionId) => {
+    if (!window.confirm('Delete this homepage section?')) {
+      return;
+    }
+
+    setHomepageSectionMessage('');
+    setHomepageSectionError('');
+    const { error: removeError } = await deleteHomepageSectionRecord(sectionId);
+    if (removeError) {
+      setHomepageSectionError(removeError.message || 'Could not delete homepage section.');
+      return;
+    }
+    setHomepageSectionMessage('Homepage section deleted.');
+    loadData();
+  };
+
+  const onToggleHomepageSection = async (section) => {
+    setHomepageSectionMessage('');
+    setHomepageSectionError('');
+    const { error: toggleError } = await toggleHomepageSectionActive(section.id, section.is_active);
+    if (toggleError) {
+      setHomepageSectionError(toggleError.message || 'Could not update homepage section state.');
+      return;
+    }
+    setHomepageSectionMessage(
+      section.is_active ? 'Homepage section hidden.' : 'Homepage section activated.'
+    );
     loadData();
   };
 
@@ -1202,6 +1316,7 @@ function DashboardPage() {
         </section>
         <nav className="dashboard-quick-nav" aria-label="Dashboard sections">
           <a href="#hero-manager">Hero</a>
+          <a href="#homepage-sections">Homepage Sections</a>
           <a href="#product-manager">Products</a>
           <a href="#catalog-products">Catalog</a>
           <a href="#orders">Orders</a>
@@ -1327,6 +1442,143 @@ function DashboardPage() {
 
           {heroError ? <p className="dashboard-error">{heroError}</p> : null}
           {heroMessage ? <p className="dashboard-success">{heroMessage}</p> : null}
+        </section>
+
+        <section className="panel" id="homepage-sections">
+          <h3>Manage Homepage Product Sections</h3>
+          <p className="panel-lead">
+            Create titled product rows, select exactly which products appear, and control their display order.
+          </p>
+
+          <form className="product-form" onSubmit={onSaveHomepageSection}>
+            <label>
+              Section Title
+              <input
+                type="text"
+                name="title"
+                value={homepageSectionForm.title}
+                onChange={onHomepageSectionInput}
+                placeholder="New arrivals"
+                required
+              />
+            </label>
+
+            <label>
+              Sort Order
+              <input
+                type="number"
+                name="sort_order"
+                value={homepageSectionForm.sort_order}
+                onChange={onHomepageSectionInput}
+              />
+            </label>
+
+            <label className="checkbox-field">
+              <input
+                type="checkbox"
+                name="is_active"
+                checked={homepageSectionForm.is_active}
+                onChange={onHomepageSectionInput}
+              />
+              Active
+            </label>
+
+            <fieldset className="homepage-product-picker full-row">
+              <legend>Products ({homepageSectionForm.product_ids.length} selected)</legend>
+              <div className="homepage-product-options">
+                {dashboard.products.length > 0 ? (
+                  dashboard.products.map((product) => (
+                    <label key={product.id} className="homepage-product-option">
+                      <input
+                        type="checkbox"
+                        checked={homepageSectionForm.product_ids.includes(product.id)}
+                        onChange={() => onHomepageSectionProductToggle(product.id)}
+                      />
+                      <span>
+                        <strong>{product.name}</strong>
+                        <small>{product.category} · {formatMAD(product.price)}</small>
+                      </span>
+                    </label>
+                  ))
+                ) : (
+                  <p>Add products before creating a homepage section.</p>
+                )}
+              </div>
+            </fieldset>
+
+            <div className="product-form-actions">
+              <button type="submit" disabled={savingHomepageSection || dashboard.products.length === 0}>
+                {savingHomepageSection
+                  ? 'Saving...'
+                  : homepageSectionForm.id
+                    ? 'Update Section'
+                    : 'Add Section'}
+              </button>
+              {homepageSectionForm.id ? (
+                <button type="button" className="ghost-btn" onClick={clearHomepageSectionForm}>
+                  Cancel Edit
+                </button>
+              ) : null}
+            </div>
+          </form>
+
+          <div className="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Title</th>
+                  <th>Products</th>
+                  <th>Order</th>
+                  <th>Active</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {dashboard.homepageSections.length > 0 ? (
+                  dashboard.homepageSections.map((section) => (
+                    <tr key={section.id}>
+                      <td>{section.title}</td>
+                      <td>{section.product_ids.length}</td>
+                      <td>{section.sort_order}</td>
+                      <td>{section.is_active ? 'Yes' : 'No'}</td>
+                      <td>
+                        <div className="product-actions">
+                          <button
+                            type="button"
+                            className="small-btn"
+                            onClick={() => onEditHomepageSection(section)}
+                          >
+                            Edit
+                          </button>
+                          <button
+                            type="button"
+                            className="small-btn ghost-btn"
+                            onClick={() => onToggleHomepageSection(section)}
+                          >
+                            {section.is_active ? 'Hide' : 'Activate'}
+                          </button>
+                          <button
+                            type="button"
+                            className="small-btn danger-btn"
+                            onClick={() => onDeleteHomepageSection(section.id)}
+                          >
+                            Delete
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))
+                ) : (
+                  <tr>
+                    <td colSpan={5}>No homepage product sections yet.</td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          </div>
+
+          {homepageSectionError ? <p className="dashboard-error">{homepageSectionError}</p> : null}
+          {homepageSectionMessage ? <p className="dashboard-success">{homepageSectionMessage}</p> : null}
         </section>
 
         <section className="panel" id="product-manager">
@@ -1511,7 +1763,7 @@ function DashboardPage() {
 
             <label className="checkbox-field">
               <input type="checkbox" name="is_featured" checked={productForm.is_featured} onChange={onProductInput} />
-              Featured
+              Show in “Produits en vedette” on homepage
             </label>
 
             <label className="checkbox-field">

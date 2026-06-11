@@ -33,6 +33,15 @@ create table if not exists public.hero_slides (
   created_at timestamptz not null default now()
 );
 
+create table if not exists public.homepage_sections (
+  id uuid primary key default gen_random_uuid(),
+  title text not null,
+  product_ids uuid[] not null default '{}',
+  sort_order integer not null default 0,
+  is_active boolean not null default true,
+  created_at timestamptz not null default now()
+);
+
 create table if not exists public.products (
   id uuid primary key default gen_random_uuid(),
   slug text unique,
@@ -121,6 +130,7 @@ alter table public.products enable row level security;
 alter table public.categories enable row level security;
 alter table public.tags enable row level security;
 alter table public.hero_slides enable row level security;
+alter table public.homepage_sections enable row level security;
 alter table public.product_images enable row level security;
 alter table public.orders enable row level security;
 alter table public.order_items enable row level security;
@@ -152,6 +162,11 @@ drop policy if exists "hero slides admin read" on public.hero_slides;
 drop policy if exists "hero slides admin insert" on public.hero_slides;
 drop policy if exists "hero slides admin update" on public.hero_slides;
 drop policy if exists "hero slides admin delete" on public.hero_slides;
+drop policy if exists "homepage sections storefront read" on public.homepage_sections;
+drop policy if exists "homepage sections admin read" on public.homepage_sections;
+drop policy if exists "homepage sections admin insert" on public.homepage_sections;
+drop policy if exists "homepage sections admin update" on public.homepage_sections;
+drop policy if exists "homepage sections admin delete" on public.homepage_sections;
 
 -- Public storefront read
 drop policy if exists "products storefront read" on public.products;
@@ -167,6 +182,9 @@ create policy "tags storefront read" on public.tags
 for select using (true);
 
 create policy "hero slides storefront read" on public.hero_slides
+for select using (is_active = true);
+
+create policy "homepage sections storefront read" on public.homepage_sections
 for select using (is_active = true);
 
 create policy "product images storefront read" on public.product_images
@@ -259,6 +277,18 @@ create policy "hero slides admin update" on public.hero_slides
 for update using (auth.role() = 'authenticated') with check (auth.role() = 'authenticated');
 
 create policy "hero slides admin delete" on public.hero_slides
+for delete using (auth.role() = 'authenticated');
+
+create policy "homepage sections admin read" on public.homepage_sections
+for select using (auth.role() = 'authenticated');
+
+create policy "homepage sections admin insert" on public.homepage_sections
+for insert with check (auth.role() = 'authenticated');
+
+create policy "homepage sections admin update" on public.homepage_sections
+for update using (auth.role() = 'authenticated') with check (auth.role() = 'authenticated');
+
+create policy "homepage sections admin delete" on public.homepage_sections
 for delete using (auth.role() = 'authenticated');
 
 -- Public insert for checkout + custom requests

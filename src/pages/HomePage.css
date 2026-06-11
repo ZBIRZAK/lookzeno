@@ -518,6 +518,14 @@
   border-bottom: 1px solid #eceff3;
 }
 
+.dynamic-home-section.light {
+  background: #fff;
+}
+
+.dynamic-home-section.soft {
+  background: #f7f8fa;
+}
+
 .caps-grid {
   grid-template-columns: repeat(2, minmax(0, 1fr));
 }

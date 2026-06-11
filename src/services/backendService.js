@@ -176,6 +176,17 @@ function normalizeHeroSlide(item) {
   };
 }
 
+function normalizeHomepageSection(item) {
+  return {
+    id: item.id,
+    title: item.title || 'Collection',
+    product_ids: Array.isArray(item.product_ids) ? item.product_ids : [],
+    sort_order: Number(item.sort_order || 0),
+    is_active: item.is_active !== false,
+    created_at: item.created_at
+  };
+}
+
 async function fetchProductsRaw(onlyActive = true) {
   if (!isSupabaseConfigured || !supabase) {
     return { data: [], error: null };
@@ -374,15 +385,43 @@ async function fetchStorefrontCategories() {
   return { data: data || [], error };
 }
 
+async function fetchHomepageSections() {
+  if (!isSupabaseConfigured || !supabase) {
+    return { data: [], error: null };
+  }
+
+  const { data, error } = await supabase
+    .from('homepage_sections')
+    .select('*')
+    .eq('is_active', true)
+    .order('sort_order', { ascending: true })
+    .order('created_at', { ascending: true });
+
+  if (error?.code === '42P01') {
+    return { data: [], error: null };
+  }
+
+  return { data: (data || []).map(normalizeHomepageSection), error };
+}
+
 export async function fetchStorefrontData() {
   const [
     { data: products, error: productsError },
     { data: heroSlides, error: slidesError },
-    { data: storedCategories, error: categoriesError }
-  ] = await Promise.all([fetchCatalogProducts(), fetchHeroSlides(), fetchStorefrontCategories()]);
+    { data: storedCategories, error: categoriesError },
+    { data: homepageSections, error: homepageSectionsError }
+  ] = await Promise.all([
+    fetchCatalogProducts(),
+    fetchHeroSlides(),
+    fetchStorefrontCategories(),
+    fetchHomepageSections()
+  ]);
 
-  if (productsError || slidesError || categoriesError) {
-    return { data: null, error: productsError || slidesError || categoriesError };
+  if (productsError || slidesError || categoriesError || homepageSectionsError) {
+    return {
+      data: null,
+      error: productsError || slidesError || categoriesError || homepageSectionsError
+    };
   }
 
   const safeProducts = products || [];
@@ -421,13 +460,21 @@ export async function fetchStorefrontData() {
   const categories = Array.from(categoryMap.values());
 
   const featured = safeProducts.filter((product) => product.is_featured).slice(0, 8);
+  const productsById = new Map(safeProducts.map((product) => [product.id, product]));
+  const populatedHomepageSections = (homepageSections || [])
+    .map((section) => ({
+      ...section,
+      products: section.product_ids.map((id) => productsById.get(id)).filter(Boolean)
+    }))
+    .filter((section) => section.products.length > 0);
 
   return {
     data: {
       products: safeProducts,
       featured,
       categories,
-      heroSlides: heroSlides || []
+      heroSlides: heroSlides || [],
+      homepageSections: populatedHomepageSections
     },
     error: null
   };
@@ -574,7 +621,8 @@ export async function fetchDashboardData() {
         productImages: [],
         categories: [],
         tags: [],
-        heroSlides: []
+        heroSlides: [],
+        homepageSections: []
       },
       error: null
     };
@@ -588,7 +636,16 @@ export async function fetchDashboardData() {
     return { data: null, error: categorySyncError };
   }
 
-  const [ordersResult, customResult, productsResult, productImagesResult, categoriesResult, tagsResult, heroSlidesResult] = await Promise.all([
+  const [
+    ordersResult,
+    customResult,
+    productsResult,
+    productImagesResult,
+    categoriesResult,
+    tagsResult,
+    heroSlidesResult,
+    homepageSectionsResult
+  ] = await Promise.all([
     supabase
       .from('orders')
       .select('id, customer_name, customer_phone, subtotal, status, created_at')
@@ -608,7 +665,12 @@ export async function fetchDashboardData() {
       .limit(500),
     supabase.from('categories').select('*').order('name', { ascending: true }),
     supabase.from('tags').select('*').order('name', { ascending: true }),
-    supabase.from('hero_slides').select('*').order('sort_order', { ascending: true }).order('created_at', { ascending: true })
+    supabase.from('hero_slides').select('*').order('sort_order', { ascending: true }).order('created_at', { ascending: true }),
+    supabase
+      .from('homepage_sections')
+      .select('*')
+      .order('sort_order', { ascending: true })
+      .order('created_at', { ascending: true })
   ]);
 
   if (ordersResult.error || customResult.error || productsResult.error) {
@@ -622,6 +684,7 @@ export async function fetchDashboardData() {
   const categoryErrorCode = categoriesResult.error?.code;
   const tagErrorCode = tagsResult.error?.code;
   const heroSlidesErrorCode = heroSlidesResult.error?.code;
+  const homepageSectionsErrorCode = homepageSectionsResult.error?.code;
   const categories = categoryErrorCode === '42P01' ? [] : categoriesResult.data || [];
   const tags = tagErrorCode === '42P01' ? [] : tagsResult.data || [];
 
@@ -633,6 +696,10 @@ export async function fetchDashboardData() {
   const products = mergeProductsWithImages(rawProducts, productImages);
   const heroSlides =
     heroSlidesErrorCode === '42P01' ? [] : (heroSlidesResult.data || []).map(normalizeHeroSlide);
+  const homepageSections =
+    homepageSectionsErrorCode === '42P01'
+      ? []
+      : (homepageSectionsResult.data || []).map(normalizeHomepageSection);
 
   const totalRevenue = orders.reduce((sum, order) => sum + asNumber(order.subtotal), 0);
 
@@ -650,7 +717,8 @@ export async function fetchDashboardData() {
       productImages,
       categories,
       tags,
-      heroSlides
+      heroSlides,
+      homepageSections
     },
     error: null
   };
@@ -702,6 +770,56 @@ export async function toggleHeroSlideActive(slideId, currentActive) {
     .from('hero_slides')
     .update({ is_active: !currentActive })
     .eq('id', slideId)
+    .select('id')
+    .single();
+
+  return { data, error };
+}
+
+export async function upsertHomepageSectionRecord(sectionInput) {
+  if (!isSupabaseConfigured || !supabase) {
+    return { data: null, error: null };
+  }
+
+  const payload = {
+    title: String(sectionInput.title || '').trim() || 'Collection',
+    product_ids: Array.isArray(sectionInput.product_ids) ? sectionInput.product_ids : [],
+    sort_order: Number(sectionInput.sort_order || 0),
+    is_active: sectionInput.is_active !== false
+  };
+
+  if (sectionInput.id) {
+    const { data, error } = await supabase
+      .from('homepage_sections')
+      .update(payload)
+      .eq('id', sectionInput.id)
+      .select('id')
+      .single();
+    return { data, error };
+  }
+
+  const { data, error } = await supabase.from('homepage_sections').insert(payload).select('id').single();
+  return { data, error };
+}
+
+export async function deleteHomepageSectionRecord(sectionId) {
+  if (!isSupabaseConfigured || !supabase) {
+    return { data: null, error: null };
+  }
+
+  const { error } = await supabase.from('homepage_sections').delete().eq('id', sectionId);
+  return { data: { id: sectionId }, error };
+}
+
+export async function toggleHomepageSectionActive(sectionId, currentActive) {
+  if (!isSupabaseConfigured || !supabase) {
+    return { data: null, error: null };
+  }
+
+  const { data, error } = await supabase
+    .from('homepage_sections')
+    .update({ is_active: !currentActive })
+    .eq('id', sectionId)
     .select('id')
     .single();
 

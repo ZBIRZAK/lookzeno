@@ -8,6 +8,9 @@
 4. Create `.env` from `.env.example` and fill values.
 5. Restart dev server.
 
+For an existing project, run `supabase/migrations/202606110001_homepage_sections.sql`
+in the Supabase SQL Editor to enable dashboard-managed homepage product sections.
+
 ## Create Admin User (Dashboard Login)
 
 1. Go to `Authentication -> Users` in Supabase.
