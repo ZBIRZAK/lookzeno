@@ -16,6 +16,7 @@ function CartPage() {
   const [formError, setFormError] = useState('');
   const [isSubmittingOrder, setIsSubmittingOrder] = useState(false);
   const [backendNote, setBackendNote] = useState('');
+  const [orderSentToWhatsApp, setOrderSentToWhatsApp] = useState(false);
 
   const handleOrderOnWhatsApp = async () => {
     const trimmedName = customerName.trim();
@@ -76,6 +77,10 @@ function CartPage() {
 
     const text = encodeURIComponent(lines.join('\n'));
     window.open(`https://wa.me/${whatsappTarget}?text=${text}`, '_blank', 'noopener,noreferrer');
+    clearCart();
+    setCustomerName('');
+    setCustomerPhone('');
+    setOrderSentToWhatsApp(true);
     setFormError('');
   };
 
@@ -91,8 +96,12 @@ function CartPage() {
 
         {items.length === 0 ? (
           <section className="cart-empty">
-            <h2>Votre panier est vide</h2>
-            <p>Ajoutez votre premier article pour commencer.</p>
+            <h2>{orderSentToWhatsApp ? 'Commande ouverte dans WhatsApp' : 'Votre panier est vide'}</h2>
+            <p>
+              {orderSentToWhatsApp
+                ? 'Votre panier a été vidé. Finalisez l’envoi de votre message dans WhatsApp.'
+                : 'Ajoutez votre premier article pour commencer.'}
+            </p>
             <Link to="/products">Voir les produits</Link>
           </section>
         ) : (
