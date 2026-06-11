@@ -30,7 +30,9 @@ insert into public.categories (name, slug, description)
 values
 ('T-Shirts','t-shirts','Best-selling graphic and embroidered tees'),
 ('Hoodies','hoodies','Oversized fits and premium fleece'),
-('Casquettes','casquettes','Minimal caps with premium embroidery')
+('Casquettes','casquettes','Minimal caps with premium embroidery'),
+('Sandals','sandals','Collection de sandales streetwear'),
+('Jerseys','jerseys','Collection de jerseys streetwear')
 on conflict (slug) do nothing;
 
 insert into public.tags (name, slug)

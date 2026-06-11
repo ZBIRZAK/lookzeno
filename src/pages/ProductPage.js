@@ -3,7 +3,7 @@ import { Link, useParams } from 'react-router-dom';
 import './ProductPage.css';
 import { useCart } from '../context/CartContext';
 import SiteHeader from '../components/SiteHeader';
-import mainImage from '../assets/pdp/main.jpg';
+import mainImage from '../assets/pdp/thumb-1.jpg';
 import { fetchProductBySlug, fetchRelatedProducts } from '../services/backendService';
 import { formatMAD } from '../utils/currency';
 

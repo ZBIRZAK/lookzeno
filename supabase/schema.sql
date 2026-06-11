@@ -9,6 +9,12 @@ create table if not exists public.categories (
   created_at timestamptz not null default now()
 );
 
+insert into public.categories (name, slug, description)
+values
+  ('Sandals', 'sandals', 'Collection de sandales streetwear'),
+  ('Jerseys', 'jerseys', 'Collection de jerseys streetwear')
+on conflict (slug) do nothing;
+
 create table if not exists public.tags (
   id uuid primary key default gen_random_uuid(),
   name text not null unique,
@@ -186,6 +192,10 @@ for delete using (auth.role() = 'authenticated');
 drop policy if exists "categories admin read" on public.categories;
 create policy "categories admin read" on public.categories
 for select using (auth.role() = 'authenticated');
+
+drop policy if exists "categories storefront read" on public.categories;
+create policy "categories storefront read" on public.categories
+for select using (true);
 
 drop policy if exists "categories admin insert" on public.categories;
 create policy "categories admin insert" on public.categories

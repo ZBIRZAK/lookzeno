@@ -3,6 +3,7 @@ import SiteHeader from '../components/SiteHeader';
 import {
   addProductImageRecord,
   bulkUpdateProducts,
+  DEFAULT_PRODUCT_CATEGORIES,
   deleteCategoryRecord,
   deleteHeroSlideRecord,
   deleteProductImageRecord,
@@ -143,7 +144,7 @@ function DashboardPage() {
 
   const categoryOptions = useMemo(() => {
     const list = dashboard.categories.map((item) => item.name).filter(Boolean);
-    return list.length > 0 ? list : ['T-Shirts', 'Hoodies', 'Casquettes', 'Accessories'];
+    return Array.from(new Set([...DEFAULT_PRODUCT_CATEGORIES, ...list]));
   }, [dashboard.categories]);
 
   const clearProductForm = useCallback(() => {

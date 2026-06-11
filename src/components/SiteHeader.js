@@ -3,7 +3,6 @@ import { Link } from 'react-router-dom';
 import { useCart } from '../context/CartContext';
 import './SiteHeader.css';
 import logoBlack from '../assets/logo/logo-black.png';
-import logoWhite from '../assets/logo/logo-white.png';
 
 function SiteHeader({ overlay = false }) {
   const { totalCount } = useCart();
@@ -22,14 +21,23 @@ function SiteHeader({ overlay = false }) {
     <>
       <header className={`site-header ${overlay ? 'overlay' : 'solid'}`}>
         <div className="site-left-links">
-          <a href="#top">YT</a>
-          <a href="#top">IG</a>
-          <a href="#top">X</a>
-          <a href="#top">DS</a>
+          <a
+            href="https://www.instagram.com/lookzeno/"
+            target="_blank"
+            rel="noreferrer"
+            className="site-instagram-link"
+            aria-label="Instagram LookZeno"
+          >
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <rect x="3" y="3" width="18" height="18" rx="5" />
+              <circle cx="12" cy="12" r="4.25" />
+              <circle className="instagram-dot" cx="17.4" cy="6.7" r="1.1" />
+            </svg>
+          </a>
         </div>
 
         <Link to="/" className="site-brand">
-          <img src={logoWhite} alt="LookZeno" className="site-logo light" />
+          <img src={logoBlack} alt="LookZeno" className="site-logo light" />
           <img src={logoBlack} alt="LookZeno" className="site-logo dark" />
         </Link>
 
@@ -47,7 +55,6 @@ function SiteHeader({ overlay = false }) {
 
         <div className="site-right-links">
           <Link to="/products">Boutique</Link>
-          <Link to="/custom-print">Impression personnalisée</Link>
           <Link to="/pourquoi-lookzeno">Pourquoi LookZeno</Link>
           <Link to="/cart" className="site-cart-icon" aria-label={`Panier avec ${totalCount} article(s)`}>
             <span aria-hidden="true">
@@ -81,7 +88,6 @@ function SiteHeader({ overlay = false }) {
       <aside className={`site-mobile-drawer ${menuOpen ? 'open' : ''}`}>
         <p>Menu</p>
         <Link to="/products" onClick={closeMenu}>Boutique</Link>
-        <Link to="/custom-print" onClick={closeMenu}>Impression personnalisée</Link>
         <Link to="/pourquoi-lookzeno" onClick={closeMenu}>Pourquoi LookZeno</Link>
         <Link to="/cart" onClick={closeMenu}>Panier ({totalCount})</Link>
       </aside>

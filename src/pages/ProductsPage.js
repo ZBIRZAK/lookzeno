@@ -33,7 +33,12 @@ function ProductsPage() {
 
         if (data) {
           const nextCatalog = data.products || [];
-          const catalogCategories = Array.from(new Set(nextCatalog.map((item) => item.category).filter(Boolean)));
+          const catalogCategories = Array.from(
+            new Set([
+              ...(data.categories || []).map((item) => item.name).filter(Boolean),
+              ...nextCatalog.map((item) => item.category).filter(Boolean)
+            ])
+          );
           const nextCategories = ['Tous', ...catalogCategories];
 
           setCatalog(nextCatalog);

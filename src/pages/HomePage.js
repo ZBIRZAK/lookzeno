@@ -2,12 +2,12 @@ import { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import './HomePage.css';
 import SiteHeader from '../components/SiteHeader';
-import heroImg from '../assets/site/hero.avif';
-import heroImgAlt from '../assets/site/hero.png';
-import heroImgThird from '../assets/pdp/main.jpg';
-import placeholder2 from '../assets/site/product-imgs/placeholder-2.avif';
+import heroImg from '../assets/reference/hero.png';
+import heroImgAlt from '../assets/pdp/detail.jpg';
+import heroImgThird from '../assets/images/image1-home-page.jpg';
+import placeholder2 from '../assets/site/product-imgs/product-placeholder.avif';
 import capPlaceholder from '../assets/site/product-imgs/Casquettes.webp';
-import homeSectionImage from '../assets/images/image1-home-page.webp';
+import homeSectionImage from '../assets/images/image1-home-page.jpg';
 import { fetchStorefrontData } from '../services/backendService';
 import { formatMAD } from '../utils/currency';
 
@@ -35,6 +35,47 @@ function isHoodieProduct(item) {
   const tags = Array.isArray(item?.tags) ? item.tags.join(' ').toLowerCase() : '';
   const haystack = `${category} ${name} ${tags}`.trim();
   return /(hoodie|hoodies|sweat|sweatshirt)/i.test(haystack);
+}
+
+function matchesProductType(item, pattern) {
+  const category = String(item?.category || '').toLowerCase();
+  const name = String(item?.name || '').toLowerCase();
+  const tags = Array.isArray(item?.tags) ? item.tags.join(' ').toLowerCase() : '';
+  return pattern.test(`${category} ${name} ${tags}`.trim());
+}
+
+function PriorityProductSection({ id, title, products, isLoading }) {
+  if (!isLoading && products.length === 0) {
+    return null;
+  }
+
+  return (
+    <section className="caps-section" id={id}>
+      <div className="section-head">
+        <h2>{title}</h2>
+        <Link to={`/products?category=${encodeURIComponent(title)}`}>Voir tout</Link>
+      </div>
+      <div className="product-grid caps-grid">
+        {isLoading
+          ? Array.from({ length: 2 }).map((_, idx) => (
+              <article className="product-card product-card-skeleton" key={`${id}-skeleton-${idx}`}>
+                <div className="skeleton product-image-skeleton" />
+                <div className="skeleton product-title-skeleton" />
+                <div className="skeleton product-price-skeleton" />
+              </article>
+            ))
+          : products.map((product) => (
+              <article className="product-card" key={product.slug || product.name}>
+                <Link to={product.to || `/product/${product.slug}`}>
+                  <img src={product.image || placeholder2} alt={product.name} />
+                </Link>
+                <h3>{product.name}</h3>
+                <p>{currency(product.price)}</p>
+              </article>
+            ))}
+      </div>
+    </section>
+  );
 }
 
 function HomePage() {
@@ -101,6 +142,16 @@ function HomePage() {
     return hoodies.slice(0, 4);
   }, [storeData.products]);
 
+  const sandalProducts = useMemo(
+    () => storeData.products.filter((item) => matchesProductType(item, /\b(sandal|sandals|sandale|sandales)\b/i)).slice(0, 4),
+    [storeData.products]
+  );
+
+  const jerseyProducts = useMemo(
+    () => storeData.products.filter((item) => matchesProductType(item, /\b(jersey|jerseys)\b/i)).slice(0, 4),
+    [storeData.products]
+  );
+
   const hasHoodiesCategory = useMemo(() => {
     const categoriesFromDb = (storeData.categories || []).map((cat) => String(cat?.name || '').toLowerCase());
     if (categoriesFromDb.some((name) => /hoodie|hoodies/.test(name))) {
@@ -109,10 +160,21 @@ function HomePage() {
     return storeData.products.some((item) => /hoodie|hoodies/i.test(String(item?.category || '')));
   }, [storeData.categories, storeData.products]);
 
-  const categories = storeData.categories.map((cat) => ({
-    name: cat.name,
-    desc: cat.description || `${cat.name} collection`
-  }));
+  const categories = useMemo(() => {
+    const priority = ['sandals', 'jerseys'];
+    return storeData.categories
+      .map((cat) => ({
+        name: cat.name,
+        desc: cat.description || `${cat.name} collection`
+      }))
+      .sort((a, b) => {
+        const aIndex = priority.indexOf(String(a.name || '').toLowerCase());
+        const bIndex = priority.indexOf(String(b.name || '').toLowerCase());
+        const aRank = aIndex === -1 ? priority.length : aIndex;
+        const bRank = bIndex === -1 ? priority.length : bIndex;
+        return aRank - bRank;
+      });
+  }, [storeData.categories]);
 
   const ctaProduct = featuredProducts[0] || storeData.products[0] || null;
 
@@ -158,6 +220,20 @@ function HomePage() {
             : null}
         </div>
       </section>
+
+      <PriorityProductSection
+        id="sandals"
+        title="Sandals"
+        products={sandalProducts}
+        isLoading={isLoading}
+      />
+
+      <PriorityProductSection
+        id="jerseys"
+        title="Jerseys"
+        products={jerseyProducts}
+        isLoading={isLoading}
+      />
 
       <section className="featured" id="featured">
         <div className="section-head">

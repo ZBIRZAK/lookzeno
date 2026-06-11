@@ -3,7 +3,12 @@ import { isSupabaseConfigured, supabase } from '../lib/supabaseClient';
 export { isSupabaseConfigured };
 
 const DEFAULT_SIZES = ['S', 'M', 'L', 'XL', '2XL'];
+export const DEFAULT_PRODUCT_CATEGORIES = ['Sandals', 'Jerseys', 'T-Shirts', 'Hoodies', 'Casquettes', 'Accessories'];
 const PRODUCT_BUCKET = process.env.REACT_APP_SUPABASE_PRODUCT_BUCKET || 'product-images';
+const REQUIRED_BACKEND_CATEGORIES = [
+  { name: 'Sandals', slug: 'sandals', description: 'Collection de sandales streetwear' },
+  { name: 'Jerseys', slug: 'jerseys', description: 'Collection de jerseys streetwear' }
+];
 
 function asNumber(value, fallback = 0) {
   const next = Number(value);
@@ -356,24 +361,64 @@ export async function fetchCatalogProducts() {
   return { data: mergeProductsWithImages(products, images), error: null };
 }
 
-export async function fetchStorefrontData() {
-  const [{ data: products, error: productsError }, { data: heroSlides, error: slidesError }] =
-    await Promise.all([fetchCatalogProducts(), fetchHeroSlides()]);
+async function fetchStorefrontCategories() {
+  if (!isSupabaseConfigured || !supabase) {
+    return { data: [], error: null };
+  }
 
-  if (productsError || slidesError) {
-    return { data: null, error: productsError || slidesError };
+  const { data, error } = await supabase.from('categories').select('*').order('name', { ascending: true });
+  if (error?.code === '42P01') {
+    return { data: [], error: null };
+  }
+
+  return { data: data || [], error };
+}
+
+export async function fetchStorefrontData() {
+  const [
+    { data: products, error: productsError },
+    { data: heroSlides, error: slidesError },
+    { data: storedCategories, error: categoriesError }
+  ] = await Promise.all([fetchCatalogProducts(), fetchHeroSlides(), fetchStorefrontCategories()]);
+
+  if (productsError || slidesError || categoriesError) {
+    return { data: null, error: productsError || slidesError || categoriesError };
   }
 
   const safeProducts = products || [];
+  const categoryMap = new Map();
 
-  const derivedCategories = Array.from(
-    new Set(safeProducts.map((product) => product.category).filter(Boolean))
-  ).map((name) => ({
-    id: name.toLowerCase().replace(/\s+/g, '-'),
-    name,
-    slug: name.toLowerCase().replace(/\s+/g, '-'),
-    description: `Collection ${name}`
-  }));
+  DEFAULT_PRODUCT_CATEGORIES.forEach((name) => {
+    const slug = name.toLowerCase().replace(/\s+/g, '-');
+    categoryMap.set(name.toLowerCase(), {
+      id: slug,
+      name,
+      slug,
+      description: `Collection ${name}`
+    });
+  });
+
+  (storedCategories || []).forEach((category) => {
+    if (category?.name) {
+      categoryMap.set(category.name.toLowerCase(), category);
+    }
+  });
+
+  safeProducts.forEach((product) => {
+    const name = product.category;
+    const key = String(name || '').toLowerCase();
+    if (name && !categoryMap.has(key)) {
+      const slug = name.toLowerCase().replace(/\s+/g, '-');
+      categoryMap.set(key, {
+        id: slug,
+        name,
+        slug,
+        description: `Collection ${name}`
+      });
+    }
+  });
+
+  const categories = Array.from(categoryMap.values());
 
   const featured = safeProducts.filter((product) => product.is_featured).slice(0, 8);
 
@@ -381,7 +426,7 @@ export async function fetchStorefrontData() {
     data: {
       products: safeProducts,
       featured,
-      categories: derivedCategories,
+      categories,
       heroSlides: heroSlides || []
     },
     error: null
@@ -533,6 +578,14 @@ export async function fetchDashboardData() {
       },
       error: null
     };
+  }
+
+  const { error: categorySyncError } = await supabase
+    .from('categories')
+    .upsert(REQUIRED_BACKEND_CATEGORIES, { onConflict: 'slug', ignoreDuplicates: true });
+
+  if (categorySyncError && categorySyncError.code !== '42P01') {
+    return { data: null, error: categorySyncError };
   }
 
   const [ordersResult, customResult, productsResult, productImagesResult, categoriesResult, tagsResult, heroSlidesResult] = await Promise.all([
